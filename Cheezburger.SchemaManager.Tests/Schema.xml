@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<schema xmlns="http://schemas.icanhascheezburger.com/db" version="115">
+  <includes>
+    <include>Tables.xml</include>
+  </includes>
+</schema>
