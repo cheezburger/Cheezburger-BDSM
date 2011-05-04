@@ -1,4 +1,3 @@
-using System;
 using System.Data;
 using Microsoft.Practices.EnterpriseLibrary.Data;
 using Microsoft.Practices.EnterpriseLibrary.Data.Sql;
