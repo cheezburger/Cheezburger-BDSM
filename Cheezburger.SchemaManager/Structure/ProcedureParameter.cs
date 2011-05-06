@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System;
 using System.Xml.Serialization;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public class ProcedureParameter : NameWithType
     {

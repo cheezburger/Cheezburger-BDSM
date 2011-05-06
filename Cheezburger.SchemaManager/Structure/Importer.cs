@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Cheezburger.SchemaManager.Extensions;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public enum CallbackAction
     {

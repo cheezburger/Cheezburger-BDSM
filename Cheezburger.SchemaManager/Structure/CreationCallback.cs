@@ -1,14 +1,14 @@
-using System.Collections.Generic;
 using System;
 using System.Xml.Serialization;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public class CreationCallback
     {
-        [XmlAttribute("type")]
-        public string Type;
-        [XmlAttribute("method")]
+        [XmlAttribute("method")] 
         public string Method;
+        
+        [XmlAttribute("type")] 
+        public string Type;
     }
 }

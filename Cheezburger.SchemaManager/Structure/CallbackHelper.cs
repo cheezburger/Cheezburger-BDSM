@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public static class CallbackHelper
     {
@@ -11,7 +10,7 @@ namespace Cheezburger.Common.Database.Structure
             if (result == null)
                 return default(T);
             else
-                return (T)result;
+                return (T) result;
         }
 
         public static object RunCallback(Type delegateType, string callback, object[] args, Type[] argTypes)

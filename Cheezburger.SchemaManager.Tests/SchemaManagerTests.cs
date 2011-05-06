@@ -1,6 +1,9 @@
-using System.Data;
+using System;
+using System.Configuration;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection;
+using Cheezburger.SchemaManager.Structure;
 using NUnit.Framework;
 
 namespace Cheezburger.SchemaManager.Tests
@@ -11,9 +14,14 @@ namespace Cheezburger.SchemaManager.Tests
         [Test]
         public void CanRunMigration()
         {
-            using (var connection = GetDbConnection())
+            using (var connection = GetDbConnection("TestDb"))
             {
-                var schemaUpdater = new SchemaUpdater(GetType().Assembly, "Cheezburger.SchemaManager.Tests");
+                var schemaUpdater = new SchemaUpdater
+                                        {
+                                            Assembly = Assembly.GetExecutingAssembly(), 
+                                            Namespace = "Cheezburger.SchemaManager.Tests", 
+                                            Mappings = { new SchemaMapping { Name = "Schema.xml" } }
+                                        };
 
                 connection.Open();
                 schemaUpdater.Upgrade(connection, true, Log.Write);
@@ -25,7 +33,7 @@ namespace Cheezburger.SchemaManager.Tests
 
         private void AssertTableExists(string tableName)
         {
-            using (var connection = GetDbConnection())
+            using (var connection = GetDbConnection("TestDb"))
             {
                 var command = connection.CreateCommand();
                 command.CommandText = string.Format(@"IF EXISTS (SELECT * FROM sysobjects WHERE type = 'U' AND name = '{0}') SELECT 1", tableName);
@@ -38,10 +46,16 @@ namespace Cheezburger.SchemaManager.Tests
             }
         }
 
-        private DbConnection GetDbConnection()
+        private DbConnection GetDbConnection(string name)
         {
-            var connectionString = @"Data Source=.\SqlExpress;Initial Catalog=SchemaManagerTest;Integrated Security=SSPI";
-            return new SqlConnection(connectionString);
+            var dbConfig = ConfigurationManager.ConnectionStrings[name];
+            if (dbConfig == null) throw new InvalidOperationException("Unable to find 'TestDb' in the config file.");
+
+            var dbProviderFactory = DbProviderFactories.GetFactory(dbConfig.ProviderName);
+            var connection = dbProviderFactory.CreateConnection();
+            connection.ConnectionString = dbConfig.ConnectionString;
+
+            return connection;
         }
     }
 }

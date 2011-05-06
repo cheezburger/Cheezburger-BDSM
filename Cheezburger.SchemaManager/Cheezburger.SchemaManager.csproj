@@ -45,7 +45,6 @@
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SchemaUpdater.cs" />
     <Compile Include="Structure\CallbackHelper.cs" />
     <Compile Include="Structure\Column.cs" />
     <Compile Include="Structure\CreationCallback.cs" />
@@ -60,7 +59,8 @@
     <Compile Include="Structure\ProcedureParameterDirection.cs" />
     <Compile Include="Structure\Schema.cs" />
     <Compile Include="Structure\SchemaItem.cs" />
-    <Compile Include="Structure\SchemaUpdaterBase.cs" />
+    <Compile Include="Structure\SchemaMapping.cs" />
+    <Compile Include="SchemaUpdater.cs" />
     <Compile Include="Structure\SchemaWalker.cs" />
     <Compile Include="Structure\Table.cs" />
     <Compile Include="Structure\UserFunction.cs" />
