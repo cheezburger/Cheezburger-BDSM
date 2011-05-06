@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
@@ -9,8 +10,7 @@ namespace Cheezburger.Common.Database.Structure
 {
     public class Exporter : SchemaWalker
     {
-        private Exporter(Microsoft.Practices.EnterpriseLibrary.Data.Database db)
-            : base(db)
+        private Exporter(DbConnection connection) : base(connection)
         {
         }
 
@@ -131,18 +131,7 @@ namespace Cheezburger.Common.Database.Structure
                 cmd.Parameters.Add("@p" + (i + 1), SqlDbType.Char, args[i].Length).Value = args[i];
             }
 
-            bool openClose = SchemaConnection.State == ConnectionState.Closed;
-            if (openClose) SchemaConnection.Open();
-
-            try
-            {
-                return (T)cmd.ExecuteScalar();
-            }
-            finally
-            {
-                if (openClose)
-                    SchemaConnection.Close();
-            }
+            return (T)cmd.ExecuteScalar();
         }
 
         private string GetCreateStatement(string dbobject)
@@ -152,21 +141,10 @@ namespace Cheezburger.Common.Database.Structure
             cmd.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID(@p1));";
             cmd.Parameters.Add("@p1", SqlDbType.Char, dbobject.Length).Value = dbobject;
 
-            bool openClose = SchemaConnection.State == ConnectionState.Closed;
-            if (openClose) SchemaConnection.Open();
-
-            try
-            {
-                var create = cmd.ExecuteScalar();
-                if (create is DBNull)
-                    return string.Format("CREATE [{0}] AS FAILED TO IMPORT", dbobject);
-                return (string)create;
-            }
-            finally
-            {
-                if (openClose)
-                    SchemaConnection.Close();
-            }
+            var create = cmd.ExecuteScalar();
+            if (create is DBNull)
+                return string.Format("CREATE [{0}] AS FAILED TO IMPORT", dbobject);
+            return (string)create;
         }
     }
 }

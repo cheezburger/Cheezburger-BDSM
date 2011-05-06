@@ -7,22 +7,14 @@ using System.Collections.Generic;
 
 namespace Cheezburger.Common.Database.Structure
 {
-    public abstract class SchemaWalker : IDisposable
+    public abstract class SchemaWalker
     {
-        Microsoft.Practices.EnterpriseLibrary.Data.Database db;
-        DbConnection conn;
-
-        protected DbConnection SchemaConnection
+        protected SchemaWalker(DbConnection connection)
         {
-            get { return conn; }
-            set { conn = value; }
+            SchemaConnection = connection;
         }
 
-        protected SchemaWalker(Microsoft.Practices.EnterpriseLibrary.Data.Database db)
-        {
-            this.db = db;
-            conn = db.CreateConnection();
-        }
+        protected DbConnection SchemaConnection { get; private set; }
 
         protected IEnumerable<string> WalkViews()
         {
@@ -75,72 +67,22 @@ namespace Cheezburger.Common.Database.Structure
 
         private IEnumerable<T> InternalWalkSql<T>(string sql, Func<IDataRecord, T> onRow)
         {
-            var openClose = conn.State == ConnectionState.Closed;
-            if (openClose) conn.Open();
-            try
-            {
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.CommandType = CommandType.Text;
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        yield return onRow(reader);
-            }
-            finally
-            {
-                try
-                {
-                    if (openClose)
-                        conn.Close();
-                }
-                catch { /* eat the exception so we don't confuse it with the original */ }
-            }
+            var cmd = SchemaConnection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.CommandType = CommandType.Text;
+            using (var reader = cmd.ExecuteReader())
+                while (reader.Read())
+                    yield return onRow(reader);
         }
 
         private IEnumerable<DataRow> InternalWalk(string collectionName, string sort, params string[] restrictions)
         {
-            bool openClose = conn.State == ConnectionState.Closed;
-            if (openClose) conn.Open();
-            try
-            {
-                DataTable schema = conn.GetSchema(collectionName, restrictions);
-                DataView view = new DataView(schema);
-                if (sort != null)
-                    view.Sort = sort;
-                foreach (DataRowView row in view)
-                    yield return row.Row;
-            }
-            finally
-            {
-                try
-                {
-                    if (openClose)
-                        conn.Close();
-                }
-                catch { /* eat the exception to we don't confuse it with the original */ }
-            }
+            DataTable schema = SchemaConnection.GetSchema(collectionName, restrictions);
+            DataView view = new DataView(schema);
+            if (sort != null)
+                view.Sort = sort;
+            foreach (DataRowView row in view)
+                yield return row.Row;
         }
-
-        ~SchemaWalker()
-        {
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (conn != null)
-                conn.Dispose();
-            if (disposing)
-                GC.SuppressFinalize(this);
-        }
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 }
