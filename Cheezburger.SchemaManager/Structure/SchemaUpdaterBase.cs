@@ -9,8 +9,6 @@ namespace Cheezburger.Common.Database.Structure
 {
     public abstract class SchemaUpdaterBase
     {
-        private bool? oldDatabaseBackedConfig;
-
         protected SchemaUpdaterBase()
         {
             SchemaPath = "";
