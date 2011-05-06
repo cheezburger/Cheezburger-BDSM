@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using Cheezburger.SchemaManager.Extensions;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public class Exporter : SchemaWalker
     {

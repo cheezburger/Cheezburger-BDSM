@@ -2,7 +2,7 @@ using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     [XmlRoot("schema", Namespace = "http://schemas.icanhascheezburger.com/db")]
     public class Schema : SchemaItem

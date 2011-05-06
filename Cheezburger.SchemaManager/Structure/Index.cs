@@ -1,14 +1,12 @@
-using System.Collections.Generic;
 using System;
 using System.Xml.Serialization;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public class Index : SchemaItem
     {
         public Index() { }
-        public Index(string name, IndexType type, string columns)
-            : base(name)
+        public Index(string name, IndexType type, string columns) : base(name)
         {
             this.Type = type;
             this.Columns = columns;
