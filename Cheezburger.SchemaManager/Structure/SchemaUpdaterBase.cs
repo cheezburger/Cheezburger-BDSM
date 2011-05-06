@@ -1,4 +1,6 @@
 using System;
+using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
@@ -28,7 +30,7 @@ namespace Cheezburger.Common.Database.Structure
 
         protected abstract SchemaMapping[] Mappings { get; }
 
-        public virtual void Upgrade(Func<string, Microsoft.Practices.EnterpriseLibrary.Data.Database> getdatabase, bool forceFullCheck, Action<string> log)
+        public virtual void Upgrade(DbConnection connection, bool forceFullCheck, Action<string> log)
         {
             foreach (var db in Mappings)
             {
@@ -36,7 +38,7 @@ namespace Cheezburger.Common.Database.Structure
 
                 try
                 {
-                    Importer.Upgrade(Resolve(db.Name), getdatabase(db.Connection), Resolve, forceFullCheck, log);
+                    Importer.Upgrade(Resolve(db.Name), connection, Resolve, forceFullCheck, log);
                 }
                 catch (SqlException sex)
                 {
