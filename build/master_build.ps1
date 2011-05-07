@@ -27,7 +27,7 @@ task version {
 	Set-Content -Value $content -Path $sharedAssemblyInfo
 }
 
-task compile -depends build_dir, version {
+task compile -depends build_dir {
 
 	& $msbuild $sln_file /p:OutputPath="$build_output_dir\" /p:Configuration=Release
   
