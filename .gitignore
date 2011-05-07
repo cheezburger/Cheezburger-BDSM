@@ -29,3 +29,5 @@ bin/
 _ReSharper*/
 [Tt]est[Rr]esult*
 ci
+*.nupkg
+nuget/lib/
