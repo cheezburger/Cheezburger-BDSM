@@ -1,6 +1,6 @@
 properties {
 	$base_dir = resolve-path ..\
-	$tool_dir = "$base_dir\lib"
+	$tool_dir = "$base_dir\packages"
 	$build_dir = "$base_dir\ci"
 	$build_output_dir = "$build_dir\work"
 	

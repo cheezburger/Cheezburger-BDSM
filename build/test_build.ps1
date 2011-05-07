@@ -1,10 +1,10 @@
 properties {
 	$testrpt_dir = "$build_dir\TestReports"
 	$testrpt_name = "TestReport"
-	$tests = @('RIS.CharlesRiver.MessageExporter.Tests.dll') 
+	$tests = @('Cheezburger.SchemaManager.Tests.dll') 
 	$profile_assemblies = "Ris.CharlesRiver.*"
 	
-	$nunit = "$tool_dir\NUnit.2.5.9.10348\Tools\nunit-console-x86.exe"
+	$nunit = "$tool_dir\NUnit.2.5.10.11092\tools\nunit-console-x86.exe"
 	$ncover3 = "C:\Program Files (x86)\NCover"
 	$ncover3Runner = "$ncover3\NCover.Console.exe"
 	$ncover3Reporting = "$ncover3\NCover.Reporting.exe"
