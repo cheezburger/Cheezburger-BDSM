@@ -1,3 +1,23 @@
+// Copyright (C) 2011 by Cheezburger, Inc.
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 using System;
 using System.Data;
 using System.Linq;
@@ -5,24 +25,16 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Collections.Generic;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
-    public abstract class SchemaWalker : IDisposable
+    public abstract class SchemaWalker
     {
-        Microsoft.Practices.EnterpriseLibrary.Data.Database db;
-        DbConnection conn;
-
-        protected DbConnection SchemaConnection
+        protected SchemaWalker(DbConnection connection)
         {
-            get { return conn; }
-            set { conn = value; }
+            SchemaConnection = connection;
         }
 
-        protected SchemaWalker(Microsoft.Practices.EnterpriseLibrary.Data.Database db)
-        {
-            this.db = db;
-            conn = db.CreateConnection();
-        }
+        protected DbConnection SchemaConnection { get; private set; }
 
         protected IEnumerable<string> WalkViews()
         {
@@ -75,72 +87,22 @@ namespace Cheezburger.Common.Database.Structure
 
         private IEnumerable<T> InternalWalkSql<T>(string sql, Func<IDataRecord, T> onRow)
         {
-            var openClose = conn.State == ConnectionState.Closed;
-            if (openClose) conn.Open();
-            try
-            {
-                var cmd = conn.CreateCommand();
-                cmd.CommandText = sql;
-                cmd.CommandType = CommandType.Text;
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        yield return onRow(reader);
-            }
-            finally
-            {
-                try
-                {
-                    if (openClose)
-                        conn.Close();
-                }
-                catch { /* eat the exception so we don't confuse it with the original */ }
-            }
+            var cmd = SchemaConnection.CreateCommand();
+            cmd.CommandText = sql;
+            cmd.CommandType = CommandType.Text;
+            using (var reader = cmd.ExecuteReader())
+                while (reader.Read())
+                    yield return onRow(reader);
         }
 
         private IEnumerable<DataRow> InternalWalk(string collectionName, string sort, params string[] restrictions)
         {
-            bool openClose = conn.State == ConnectionState.Closed;
-            if (openClose) conn.Open();
-            try
-            {
-                DataTable schema = conn.GetSchema(collectionName, restrictions);
-                DataView view = new DataView(schema);
-                if (sort != null)
-                    view.Sort = sort;
-                foreach (DataRowView row in view)
-                    yield return row.Row;
-            }
-            finally
-            {
-                try
-                {
-                    if (openClose)
-                        conn.Close();
-                }
-                catch { /* eat the exception to we don't confuse it with the original */ }
-            }
+            DataTable schema = SchemaConnection.GetSchema(collectionName, restrictions);
+            DataView view = new DataView(schema);
+            if (sort != null)
+                view.Sort = sort;
+            foreach (DataRowView row in view)
+                yield return row.Row;
         }
-
-        ~SchemaWalker()
-        {
-            Dispose(false);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (conn != null)
-                conn.Dispose();
-            if (disposing)
-                GC.SuppressFinalize(this);
-        }
-
-        #region IDisposable Members
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        #endregion
     }
 }

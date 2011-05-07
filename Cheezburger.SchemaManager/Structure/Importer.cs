@@ -1,3 +1,23 @@
+// Copyright (C) 2011 by Cheezburger, Inc.
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 using System;
 using System.Data;
 using System.Diagnostics;
@@ -8,7 +28,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Cheezburger.SchemaManager.Extensions;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public enum CallbackAction
     {
@@ -19,7 +39,7 @@ namespace Cheezburger.Common.Database.Structure
     public class Importer : SchemaWalker
     {
         private Schema schema;
-        private Microsoft.Practices.EnterpriseLibrary.Data.Database db;
+        private DbConnection connection;
         private readonly Func<string, Schema> _resolve;
         private readonly Action<string> log;
 
@@ -46,28 +66,24 @@ namespace Cheezburger.Common.Database.Structure
 
         public static DebugLogHandler DebugLog = (s, a) => { };
 
-        private Importer(Schema schema, Microsoft.Practices.EnterpriseLibrary.Data.Database db,
-                         Func<string, Schema> resolve, Action<string> log)
-            : base(db)
+        private Importer(Schema schema, DbConnection connection, Func<string, Schema> resolve, Action<string> log)
+            : base(connection)
         {
             this.schema = schema;
-            this.db = db;
+            this.connection = connection;
             _resolve = resolve;
             this.log = log ?? (s => { });
         }
 
-        public static void Upgrade(Schema schema, 
-                                   Microsoft.Practices.EnterpriseLibrary.Data.Database db, 
+        public static void Upgrade(Schema schema,
+                                   DbConnection connection, 
                                    Func<string, Schema> resolve, 
                                    bool forceFullUpdate, Action<string> log)
         {
             if (schema == null) throw new ArgumentNullException("schema");
-            if (db == null) throw new ArgumentNullException("db");
+            if (connection == null) throw new ArgumentNullException("connection");
 
-            using (Importer importer = new Importer(schema, db, resolve, log))
-            {
-                importer.InternalUpgrade(forceFullUpdate);
-            }
+            new Importer(schema, connection, resolve, log).InternalUpgrade(forceFullUpdate);
         }
 
         #region Utility functions
@@ -194,14 +210,12 @@ namespace Cheezburger.Common.Database.Structure
 
         private void InternalUpgrade(bool forceFullUpdate)
         {
-            DbConnection connection = db.CreateConnection();
-            connection.Open();
+            FillMetaData();
+
             using (transatedConnection = connection)
             {
-                using (transaction = transatedConnection.BeginTransaction(IsolationLevel.Serializable))
+                using (transaction = connection.BeginTransaction(IsolationLevel.Serializable))
                 {
-                    FillMetaData();
-
                     ProcessUpgrade(forceFullUpdate);
 
                     foreach (var update in finalUpdates)

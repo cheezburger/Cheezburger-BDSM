@@ -1,16 +1,36 @@
+// Copyright (C) 2011 by Cheezburger, Inc.
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 using System;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Data.SqlClient;
 using System.Text.RegularExpressions;
 using Cheezburger.SchemaManager.Extensions;
 
-namespace Cheezburger.Common.Database.Structure
+namespace Cheezburger.SchemaManager.Structure
 {
     public class Exporter : SchemaWalker
     {
-        private Exporter(Microsoft.Practices.EnterpriseLibrary.Data.Database db)
-            : base(db)
+        private Exporter(DbConnection connection) : base(connection)
         {
         }
 
@@ -131,18 +151,7 @@ namespace Cheezburger.Common.Database.Structure
                 cmd.Parameters.Add("@p" + (i + 1), SqlDbType.Char, args[i].Length).Value = args[i];
             }
 
-            bool openClose = SchemaConnection.State == ConnectionState.Closed;
-            if (openClose) SchemaConnection.Open();
-
-            try
-            {
-                return (T)cmd.ExecuteScalar();
-            }
-            finally
-            {
-                if (openClose)
-                    SchemaConnection.Close();
-            }
+            return (T)cmd.ExecuteScalar();
         }
 
         private string GetCreateStatement(string dbobject)
@@ -152,21 +161,10 @@ namespace Cheezburger.Common.Database.Structure
             cmd.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID(@p1));";
             cmd.Parameters.Add("@p1", SqlDbType.Char, dbobject.Length).Value = dbobject;
 
-            bool openClose = SchemaConnection.State == ConnectionState.Closed;
-            if (openClose) SchemaConnection.Open();
-
-            try
-            {
-                var create = cmd.ExecuteScalar();
-                if (create is DBNull)
-                    return string.Format("CREATE [{0}] AS FAILED TO IMPORT", dbobject);
-                return (string)create;
-            }
-            finally
-            {
-                if (openClose)
-                    SchemaConnection.Close();
-            }
+            var create = cmd.ExecuteScalar();
+            if (create is DBNull)
+                return string.Format("CREATE [{0}] AS FAILED TO IMPORT", dbobject);
+            return (string)create;
         }
     }
 }
