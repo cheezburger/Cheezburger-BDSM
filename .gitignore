@@ -4,8 +4,6 @@ Thumbs.db
 #Ignore files build by Visual Studio
 *.obj
 *.orig
-*.exe
-*.pdb
 *.user
 *.aps
 *.pch
@@ -20,11 +18,10 @@ Thumbs.db
 *.cache
 *.ilk
 *.log
-[Bb]in
-[Dd]ebug*/
 *.lib
 *.sbr
 obj/
+bin/
 *.suo
 *.user
 [Rr]elease*/
