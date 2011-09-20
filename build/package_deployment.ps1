@@ -11,6 +11,7 @@ task package {
 }
 
 task nuget_pack {
+	if (Test-Path "$nuget_deploy_dir\lib") { Remove-Item -Recurse -Force "$nuget_deploy_dir\lib" }
 	New-Item "$nuget_deploy_dir\lib" -ItemType Directory | Out-Null
 	Copy-Item "$build_output_dir\Cheezburger.SchemaManager.dll" "$nuget_deploy_dir\lib\"
 	& $nuget pack "$base_dir\nuget\Cheezburger.SchemaManager.nuspec"
