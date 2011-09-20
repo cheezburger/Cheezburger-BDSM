@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<schema xmlns="http://schemas.icanhascheezburger.com/db" version="1">
+  <!-- Example schema
+  <tables>
+    <table name="SomeTable">
+      <columns>
+        <column name="SomeTableId" type="int" isIdentity="true" />
+        <column name="Name" type="varchar" length="50" />
+        <column name="TheOtherGuidId" type="int" nullable="true" />
+        <column name="AGuidWithADefault" type="uniqueidentifier" default="newid()" />
+        <column name="LastModified" type="datetime" default="getdate()"/>
+      </columns>
+      <indexes>
+        <index name="PK_SomeTable" type="PrimaryKey" columns="SomeTableId" />
+        <index name="IX_AnIndexWithDESC" type="Index" columns="LastModified DESC" />
+        <index name="IX_AUniqueIndex" type="Unique" columns="Name" />
+        <index name="IX_Test" type="Index" columns="Name" />
+      </indexes>
+    </table>
+  </tables>
+  <procedures>
+    <procedure name="CreateSomething">
+      <parameters>
+        <parameter name="@yayNamedParameters" type="varchar" length="100" />
+      </parameters>
+      <body>
+        INSERT INTO [SomeTable] ([Name]) VALUES (@yayNamedParameters)
+      </body>
+    </procedure>
+  </procedures>
+  <includes>
+    <include>MoarSchema.xml</include>
+  </includes>
+  -->
+</schema>

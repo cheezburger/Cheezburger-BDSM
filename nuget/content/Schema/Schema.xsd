@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema targetNamespace="http://schemas.icanhascheezburger.com/db" xmlns:ichc="http://schemas.icanhascheezburger.com/db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+  <xs:simpleType name="dbtype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="tinyint" />
+      <xs:enumeration value="smallint" />
+      <xs:enumeration value="int" />
+      <xs:enumeration value="bigint" />
+      <xs:enumeration value="decimal" />
+      <xs:enumeration value="varchar" />
+      <xs:enumeration value="nvarchar" />
+      <xs:enumeration value="binary" />
+      <xs:enumeration value="datetime" />
+      <xs:enumeration value="bit" />
+      <xs:enumeration value="text" />
+      <xs:enumeration value="smalldatetime" />
+      <xs:enumeration value="uniqueidentifier" />
+      <xs:enumeration value="XML" />
+      <xs:enumeration value="image" />
+      <xs:enumeration value="int[]" />
+      <xs:enumeration value="long[]" />
+      <xs:enumeration value="bigint[]" />
+      <xs:enumeration value="string[]" />
+      <xs:enumeration value="varchar[]" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="dbdirection">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="In" />
+      <xs:enumeration value="Out" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="dbcallback" id="dbcallback">
+    <xs:attribute name="type" type="xs:string" use="required" />
+    <xs:attribute name="method" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:element name="schema">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="comment" type="xs:string" minOccurs="0" />
+        <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+        <xs:element name="tables" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="table">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="comment" type="xs:string" minOccurs="0" />
+                    <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                    <xs:element name="columns">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="column">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="comment" type="xs:string" minOccurs="0" />
+                                <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                              </xs:sequence>
+                              <xs:attribute name="name" type="xs:string" use="required" />
+                              <xs:attribute name="type" type="ichc:dbtype" use="required" />
+                              <xs:attribute name="nullable" type="xs:boolean" use="optional" default="false" />
+                              <xs:attribute name="isIdentity" type="xs:boolean" use="optional" />
+                              <xs:attribute name="length" type="xs:unsignedShort" use="optional" />
+                              <xs:attribute name="default" type="xs:string" use="optional" />
+                              <xs:attribute name="references" type="xs:string" use="optional" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="indexes">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="index">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="comment" type="xs:string" minOccurs="0" />
+                                <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                              </xs:sequence>
+                              <xs:attribute name="name" type="xs:string" use="required" />
+                              <xs:attribute name="type" use="required">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:enumeration value="PrimaryKey" />
+                                    <xs:enumeration value="Index" />
+                                    <xs:enumeration value="Unique" />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="columns" type="xs:string" use="required" />
+                              <xs:attribute name="include" type="xs:string" use="optional" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="views" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="view">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="comment" type="xs:string" minOccurs="0" />
+                    <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                    <xs:element name="body" type="xs:string" />
+                    <xs:element minOccurs="0" name="indexes">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="index">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="comment" type="xs:string" minOccurs="0" />
+                                <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                              </xs:sequence>
+                              <xs:attribute name="name" type="xs:string" use="required" />
+                              <xs:attribute name="type" use="required">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:enumeration value="PrimaryKey" />
+                                    <xs:enumeration value="Index" />
+                                    <xs:enumeration value="Unique" />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="columns" type="xs:string" use="required" />
+                              <xs:attribute name="include" type="xs:string" use="optional" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="macros" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="macro">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="comment" type="xs:string" minOccurs="0" />
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                  <xs:attribute name="value" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="procedures" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="procedure">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="comment" type="xs:string" minOccurs="0" />
+                    <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                    <xs:element minOccurs="0" name="parameters">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="parameter">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="comment" type="xs:string" minOccurs="0" />
+                              </xs:sequence>
+                              <xs:attribute name="name" type="xs:string" use="required" />
+                              <xs:attribute name="type" type="ichc:dbtype" use="required" />
+                              <xs:attribute name="length" type="xs:unsignedShort" use="optional" />
+                              <xs:attribute name="default" type="xs:string" use="optional" />
+                              <xs:attribute name="direction" use="optional">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:enumeration value="In" />
+                                    <xs:enumeration value="Out" />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="body" type="xs:string" />
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="functions" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="function">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element maxOccurs="unbounded" name="table">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="comment" type="xs:string" minOccurs="0" />
+                          <xs:element name="columns">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element maxOccurs="unbounded" name="column">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element name="comment" type="xs:string" minOccurs="0" />
+                                      <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                                    </xs:sequence>
+                                    <xs:attribute name="name" type="xs:string" use="required" />
+                                    <xs:attribute name="type" type="ichc:dbtype" use="required" />
+                                    <xs:attribute name="nullable" type="xs:boolean" use="optional" default="false" />
+                                    <xs:attribute name="isIdentity" type="xs:boolean" use="optional" />
+                                    <xs:attribute name="length" type="xs:unsignedShort" use="optional" />
+                                    <xs:attribute name="default" type="xs:string" use="optional" />
+                                    <xs:attribute name="references" type="xs:string" use="optional" />
+                                  </xs:complexType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    
+                    <xs:element name="comment" type="xs:string" minOccurs="0" />
+                    <xs:element name="callback" type="ichc:dbcallback" minOccurs="0" />
+                    <xs:element minOccurs="0" name="parameters">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="parameter">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element name="comment" type="xs:string" minOccurs="0" />
+                              </xs:sequence>
+                              <xs:attribute name="name" type="xs:string" use="required" />
+                              <xs:attribute name="type" type="ichc:dbtype" use="required" />
+                              <xs:attribute name="length" type="xs:unsignedShort" use="optional" />
+                              <xs:attribute name="direction" type="ichc:dbdirection" use="optional" />
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="body" type="xs:string" />
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="includes" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="include" type="xs:string" maxOccurs="unbounded" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:unsignedByte" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>
