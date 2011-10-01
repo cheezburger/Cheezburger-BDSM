@@ -11,6 +11,8 @@ Features
 * Simple Schema Description via XML
 * Use Custom SQL for Special Cases
 
+[Getting Started Screencast](http://screenr.com/Cams)
+
 Example XML Schema File
 ======
 
