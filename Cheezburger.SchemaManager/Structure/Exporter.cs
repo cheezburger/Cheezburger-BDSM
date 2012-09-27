@@ -51,8 +51,7 @@ namespace Cheezburger.SchemaManager.Structure
                         let proc = CreateProcedure(procname)
                         where proc != null
                         select proc;
-            Schema result = new Schema();
-            result.LongerComment = @"
+            var result = new Schema {LongerComment = @"
 CAUTION - THIS IS FOR INFORMATIVE PURPOSES ONLY
 
 The Exporter will generate a mostly correct version of a DB's
@@ -66,11 +65,7 @@ The current schema system does not support:
     * Altering columns
     * Altering indexes
     
-  ";
-            result.Version = 1;
-            result.Tables = tables.ToArrayOrNull();
-            result.Views = views.ToArrayOrNull();
-            result.Procedures = procs.ToArrayOrNull();
+  ", Version = 1, Tables = tables.ToArrayOrNull(), Views = views.ToArrayOrNull(), Procedures = procs.ToArrayOrNull()};
             return result;
         }
 
@@ -89,8 +84,7 @@ The current schema system does not support:
 
         private Procedure CreateProcedure(DataRow row)
         {
-            Procedure proc = new Procedure();
-            proc.Name = (string)row["ROUTINE_NAME"];
+            var proc = new Procedure {Name = (string) row["ROUTINE_NAME"]};
 
             if (proc.Name.StartsWith("sp_") || proc.Name.StartsWith("fn_"))
                 return null;
@@ -98,14 +92,14 @@ The current schema system does not support:
             proc.Parameters = (from rowParam in WalkStoredProcedureParameters(proc.Name)
                                select CreateParameter(rowParam)).ToArrayOrNull();
 
-            string createStatement = GetCreateStatement(proc.Name);
-            Match m = Regex.Match(createStatement, @"\bAS\b");
+            var createStatement = GetCreateStatement(proc.Name);
+            var m = Regex.Match(createStatement, @"\bAS\b");
             proc.Body = "\n" + createStatement.Substring(m.Index + m.Length).Trim() + "\n      ";
 
             return proc;
         }
 
-        private ProcedureParameter CreateParameter(DataRow rowParam)
+        private static ProcedureParameter CreateParameter(DataRow rowParam)
         {
             var param = new ProcedureParameter();
             FillNameAndType(rowParam, param);
@@ -115,35 +109,36 @@ The current schema system does not support:
 
         private Table CreateTable(string name)
         {
-            Table result = new Table();
-            result.Name = name;
-            result.Columns = (from row in WalkColumns(name)
-                              select CreateColumn(row)).ToArray();
-            result.Indexes = (from row in WalkIndexes(name)
-                              select CreateIndex(name, (string)row["INDEX_NAME"])).ToArrayOrNull();
+            var result = new Table
+                {
+                    Name = name,
+                    Columns = (from row in WalkColumns(name)
+                               select CreateColumn(row)).ToArray(),
+                    Indexes = (from row in WalkIndexes(name)
+                               select CreateIndex(name, (string) row["INDEX_NAME"])).ToArrayOrNull()
+                };
             return result;
         }
 
-        int colid = 0;
+        int _colid;
         private Index CreateIndex(string tableName, string indexName)
         {
-            Index index = new Index();
-            index.Name = indexName;
+            var index = new Index {Name = indexName};
 
-            bool isPriKey = QuerySysTable<bool>("is_primary_key", "indexes", "object_id = OBJECT_ID(@p1) AND [name] = @p2", tableName, index.Name);
-            bool isUnique = QuerySysTable<bool>("is_unique_constraint", "indexes", "object_id = OBJECT_ID(@p1) AND [name] = @p2", tableName, index.Name);
-            int id = QuerySysTable<int>("index_id", "indexes", "object_id = OBJECT_ID(@p1) AND [name] = @p2", tableName, index.Name);
+            var isPriKey = QuerySysTable<bool>("is_primary_key", "indexes", "object_id = OBJECT_ID(@p1) AND [name] = @p2", tableName, index.Name);
+            var isUnique = QuerySysTable<bool>("is_unique_constraint", "indexes", "object_id = OBJECT_ID(@p1) AND [name] = @p2", tableName, index.Name);
+            var id = QuerySysTable<int>("index_id", "indexes", "object_id = OBJECT_ID(@p1) AND [name] = @p2", tableName, index.Name);
 
             if (isPriKey)
                 index.Type = IndexType.PrimaryKey;
             else if (isUnique)
                 index.Type = IndexType.Unique;
 
-            colid = 1;
+            _colid = 1;
 
             index.Columns = (from row in WalkIndexColumns(tableName, index.Name)
                              let col = row["COLUMN_NAME"]
-                             let isdesc = QuerySysTable<bool>("is_descending_key", "index_columns", "object_id = OBJECT_ID(@p1) AND index_id = @p2 AND index_column_id = @p3", tableName, id.ToString(), (colid++).ToString())
+                             let isdesc = QuerySysTable<bool>("is_descending_key", "index_columns", "object_id = OBJECT_ID(@p1) AND index_id = @p2 AND index_column_id = @p3", tableName, id.ToString(), (_colid++).ToString())
                              let sort = isdesc ? " DESC" : " ASC"
                              select col + (index.Type == IndexType.Index ? sort : "")).Join(", ");
 
@@ -152,8 +147,8 @@ The current schema system does not support:
 
         private Column CreateColumn(DataRow columnRow)
         {
-            string tableName = (string)columnRow["TABLE_NAME"];
-            Column column = new Column();
+            var tableName = (string)columnRow["TABLE_NAME"];
+            var column = new Column();
 
             FillNameAndType(columnRow, column);
 
@@ -182,16 +177,16 @@ The current schema system does not support:
 
         private T QuerySysTable<T>(string col, string table, string where, params string[] args)
         {
-            SqlCommand cmd = (SqlCommand)SchemaConnection.CreateCommand();
+            var cmd = (SqlCommand)SchemaConnection.CreateCommand();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = string.Format("SELECT {0} FROM sys.{1} WHERE {2}", col, table, where);
 
-            for (int i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 cmd.Parameters.Add("@p" + (i + 1), SqlDbType.Char, args[i].Length).Value = args[i];
             }
 
-            bool openClose = SchemaConnection.State == ConnectionState.Closed;
+            var openClose = SchemaConnection.State == ConnectionState.Closed;
             if (openClose) SchemaConnection.Open();
 
             try
