@@ -30,8 +30,48 @@ namespace Cheezburger.SchemaManager.Structure
 {
     public class Exporter : SchemaWalker
     {
-        private Exporter(DbConnection connection) : base(connection)
+        public Exporter(DbConnection db)
+            : base(db)
         {
+        }
+
+        public Schema CreateSchema()
+        {
+            return InternalCreateSchema();
+        }
+
+        private Schema InternalCreateSchema()
+        {
+            var views = from view in WalkViews() select CreateView(view);
+            var tables = from tablename in WalkTables()
+                         let table = CreateTable(tablename)
+                         orderby table.Name
+                         select table;
+            var procs = from procname in WalkStoredProcedures()
+                        let proc = CreateProcedure(procname)
+                        where proc != null
+                        select proc;
+            Schema result = new Schema();
+            result.LongerComment = @"
+CAUTION - THIS IS FOR INFORMATIVE PURPOSES ONLY
+
+The Exporter will generate a mostly correct version of a DB's
+schema, but it fails to get everything.
+
+    * Stored prodecures
+
+The current schema system does not support:
+
+    * Foreign keys
+    * Altering columns
+    * Altering indexes
+    
+  ";
+            result.Version = 1;
+            result.Tables = tables.ToArrayOrNull();
+            result.Views = views.ToArrayOrNull();
+            result.Procedures = procs.ToArrayOrNull();
+            return result;
         }
 
         private View CreateView(string name)
@@ -151,20 +191,42 @@ namespace Cheezburger.SchemaManager.Structure
                 cmd.Parameters.Add("@p" + (i + 1), SqlDbType.Char, args[i].Length).Value = args[i];
             }
 
-            return (T)cmd.ExecuteScalar();
+            bool openClose = SchemaConnection.State == ConnectionState.Closed;
+            if (openClose) SchemaConnection.Open();
+
+            try
+            {
+                return (T)cmd.ExecuteScalar();
+            }
+            finally
+            {
+                if (openClose)
+                    SchemaConnection.Close();
+            }
         }
 
         private string GetCreateStatement(string dbobject)
         {
-            SqlCommand cmd = (SqlCommand)SchemaConnection.CreateCommand();
+            var cmd = (SqlCommand)SchemaConnection.CreateCommand();
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID(@p1));";
             cmd.Parameters.Add("@p1", SqlDbType.Char, dbobject.Length).Value = dbobject;
 
-            var create = cmd.ExecuteScalar();
-            if (create is DBNull)
-                return string.Format("CREATE [{0}] AS FAILED TO IMPORT", dbobject);
-            return (string)create;
+            bool openClose = SchemaConnection.State == ConnectionState.Closed;
+            if (openClose) SchemaConnection.Open();
+
+            try
+            {
+                var create = cmd.ExecuteScalar();
+                if (create is DBNull)
+                    return string.Format("CREATE [{0}] AS FAILED TO IMPORT", dbobject);
+                return (string)create;
+            }
+            finally
+            {
+                if (openClose)
+                    SchemaConnection.Close();
+            }
         }
     }
 }
