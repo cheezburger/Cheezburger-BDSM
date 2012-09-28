@@ -22,21 +22,26 @@ using System.Reflection;
 
 namespace Cheezburger.SchemaManager.Structure
 {
-    public class SchemaMapping
+    public abstract class SchemaMapping
     {
-        public string Name { get; set; }
-        public bool IgnoreFailure { get; set; }
-    }
-
-    public class EmbeddedResourceSchemaMapping : SchemaMapping
-    {
-        public EmbeddedResourceSchemaMapping()
+        protected SchemaMapping()
         {
             Path = string.Empty;
         }
 
+        public string Name { get; set; }
+        public string Path { get; set; }
+        public bool IgnoreFailure { get; set; }
+    }
+
+    public class FileSchemaMapping : SchemaMapping
+    {
+        
+    }
+
+    public class EmbeddedResourceSchemaMapping : SchemaMapping
+    {
         public Assembly Assembly { get; set; }
         public string Namespace { get; set; }
-        public string Path { get; set; }
     }
 }

@@ -109,11 +109,28 @@ namespace Cheezburger.SchemaManager
             }
         }
 
+        public class FileResolver : StreamResolverBase , IResolver
+        {
+            public FileResolver(string path)
+            {
+                _path = path;
+            }
+
+            protected override Stream ResolveStream(string name)
+            {
+                return new FileStream(Path.Combine(_path, name), FileMode.Open);
+            }
+        }
+
         private IResolver GetResolver(SchemaMapping mapping)
         {
             var embeddedMapping = mapping as EmbeddedResourceSchemaMapping;
             if (embeddedMapping != null)
                 return new EmbeddedResourceResolver(embeddedMapping.Assembly, embeddedMapping.Path, embeddedMapping.Namespace);
+
+            var fileMapping = mapping as FileSchemaMapping;
+            if (fileMapping != null)
+                return new FileResolver(fileMapping.Path);
 
             return null;
         }

@@ -43,7 +43,7 @@ namespace Cheezburger.SchemaManager.Tests
             {
                 var schemaUpdater = new SchemaUpdater
                                         {
-                                            Mappings = { new EmbeddedResourceSchemaMapping { Name = "Schema.xml", Assembly = Assembly.GetExecutingAssembly(), Namespace = "Cheezburger.SchemaManager.Tests"} }
+                                            Mappings = { new EmbeddedResourceSchemaMapping { Name = "Schema.xml", Assembly = Assembly.GetExecutingAssembly(), Namespace = "Cheezburger.SchemaManager.Tests" } }
                                         };
 
                 connection.Open();
@@ -51,7 +51,25 @@ namespace Cheezburger.SchemaManager.Tests
                 connection.Close();
             }
 
-            AssertTableExists("Category"); 
+            AssertTableExists("Category");
+        }
+
+        [Test, Ignore]
+        public void CanRunFileMigration()
+        {
+            using (var connection = GetDbConnection("TestDb"))
+            {
+                var schemaUpdater = new SchemaUpdater
+                {
+                    Mappings = { new FileSchemaMapping { Name = "Schema.xml" } }
+                };
+
+                connection.Open();
+                schemaUpdater.Upgrade(connection, true, Log.Write);
+                connection.Close();
+            }
+
+            AssertTableExists("Category");
         }
 
         private void AssertTableExists(string tableName)
@@ -65,7 +83,7 @@ namespace Cheezburger.SchemaManager.Tests
                 var result = command.ExecuteScalar();
                 connection.Close();
 
-                Assert.That(result, Is.EqualTo(1)); 
+                Assert.That(result, Is.EqualTo(1));
             }
         }
 
