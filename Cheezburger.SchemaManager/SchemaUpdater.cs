@@ -33,25 +33,21 @@ namespace Cheezburger.SchemaManager
     {
         public SchemaUpdater()
         {
-            Path = "";
             Mappings = new List<SchemaMapping>();
         }
 
-        public Assembly Assembly { get; set; }
-        public string Namespace { get; set; }
-        public string Path { get; private set; }
-        public Action<Schema> ResolveCallback { get; private set; }
         public ICollection<SchemaMapping> Mappings { get; private set; }
 
         public virtual void Upgrade(DbConnection connection, bool forceFullCheck, Action<string> log)
         {
             foreach (var db in Mappings)
             {
-                if (log != null) log("Upgrading " + db);
+                if (log != null) log("Upgrading " + db.Name);
 
+                var resolver = GetResolver(db);
                 try
                 {
-                    Importer.Upgrade(Resolve(db.Name), connection, Resolve, forceFullCheck, log);
+                    Importer.Upgrade(resolver.Resolve(db.Name), connection, resolver.Resolve, forceFullCheck, log);
                 }
                 catch (SqlException sex)
                 {
@@ -63,44 +59,63 @@ namespace Cheezburger.SchemaManager
             }
         }
 
-        public virtual Schema Resolve(string name)
+        public interface IResolver
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(Schema));
-            Schema result;
-
-            using (var stream = ResolveStream(name))
-            {
-                if (stream == null)
-                    throw new FileNotFoundException("Unable to resolve schema: " + name, name);
-
-                using (StreamReader reader = new StreamReader(stream))
-                    result = (Schema)serializer.Deserialize(reader);
-            }
-
-            if (string.IsNullOrEmpty(result.Name))
-                result.Name = name.Substring(Path.Length);
-
-            if (ResolveCallback != null)
-                ResolveCallback(result);
-
-            return result;
+            Schema Resolve(string name);
         }
 
-        private Stream ResolveStream(string name)
+        public abstract class StreamResolverBase
         {
-            return Assembly.GetManifestResourceStream(Namespace + "." + name);
+            protected string _path;
+
+            public virtual Schema Resolve(string name)
+            {
+                var serializer = new XmlSerializer(typeof(Schema));
+                Schema result;
+
+                using (var stream = ResolveStream(name))
+                {
+                    if (stream == null)
+                        throw new FileNotFoundException("Unable to resolve schema: " + name, name);
+
+                    using (var reader = new StreamReader(stream))
+                        result = (Schema)serializer.Deserialize(reader);
+                }
+
+                if (string.IsNullOrEmpty(result.Name))
+                    result.Name = name.Substring(_path.Length);
+
+                return result;
+            }
+
+            protected abstract Stream ResolveStream(string name);
         }
 
-        public virtual string ResolveAndReadText(string name)
+        public class EmbeddedResourceResolver : StreamResolverBase, IResolver
         {
-            using (var stream = ResolveStream(name))
-            {
-                if (stream == null)
-                    throw new FileNotFoundException("Unable to resolve script", name);
+            private readonly Assembly _assembly;
+            private readonly string _ns;
 
-                using (StreamReader reader = new StreamReader(stream))
-                    return reader.ReadToEnd();
+            public EmbeddedResourceResolver(Assembly assembly, string path, string @namespace)
+            {
+                _assembly = assembly;
+                _path = path;
+                _ns = @namespace;
             }
+
+            protected override Stream ResolveStream(string name)
+            {
+                return _assembly.GetManifestResourceStream(_ns + "." + name);
+            }
+        }
+
+        private IResolver GetResolver(SchemaMapping mapping)
+        {
+            var embeddedMapping = mapping as EmbeddedResourceSchemaMapping;
+            if (embeddedMapping != null)
+                return new EmbeddedResourceResolver(embeddedMapping.Assembly, embeddedMapping.Path, embeddedMapping.Namespace);
+
+            return null;
         }
     }
 }

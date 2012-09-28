@@ -18,11 +18,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System.Reflection;
+
 namespace Cheezburger.SchemaManager.Structure
 {
     public class SchemaMapping
     {
         public string Name { get; set; }
         public bool IgnoreFailure { get; set; }
+    }
+
+    public class EmbeddedResourceSchemaMapping : SchemaMapping
+    {
+        public EmbeddedResourceSchemaMapping()
+        {
+            Path = string.Empty;
+        }
+
+        public Assembly Assembly { get; set; }
+        public string Namespace { get; set; }
+        public string Path { get; set; }
     }
 }

@@ -43,9 +43,7 @@ namespace Cheezburger.SchemaManager.Tests
             {
                 var schemaUpdater = new SchemaUpdater
                                         {
-                                            Assembly = Assembly.GetExecutingAssembly(), 
-                                            Namespace = "Cheezburger.SchemaManager.Tests", 
-                                            Mappings = { new SchemaMapping { Name = "Schema.xml" } }
+                                            Mappings = { new EmbeddedResourceSchemaMapping { Name = "Schema.xml", Assembly = Assembly.GetExecutingAssembly(), Namespace = "Cheezburger.SchemaManager.Tests"} }
                                         };
 
                 connection.Open();
