@@ -66,12 +66,8 @@ namespace $rootnamespace$.Schema
 
         public void UpgradeDatabase(string connectionString, bool forceFullCheck = false, Action<string> log = null)
         {
-            var updater = new SchemaUpdater
-                {
-                    Assembly = GetType().Assembly,
-                    Namespace = "$rootnamespace$.Schema"
-                };
-            updater.Mappings.Add(new SchemaMapping {Name = "Schema.xml"});
+            var updater = new SchemaUpdater();
+            updater.Mappings.Add(new EmbeddedResourceSchemaMapping {Name = "Schema.xml", Assembly = GetType().Assembly, Namespace = "$rootnamespace$.Schema"});
 
             using (var connection = new SqlConnection(connectionString))
             {
