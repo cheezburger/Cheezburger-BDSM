@@ -59,7 +59,10 @@ namespace Cheezburger.SchemaManager.Tests
         [Test, Ignore]
         public void CanRunFileMigration()
         {
-            var tempFilePath = WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Schema.xml");
+            var tempFilePaths = new[] {
+                WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Schema.xml", "Schema.xml"),
+                WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Tables.xml", "Tables.xml")
+            };
 
             using (var connection = GetDbConnection("TestDb"))
             {
@@ -75,29 +78,30 @@ namespace Cheezburger.SchemaManager.Tests
 
             AssertTableExists("Category");
 
-            File.Delete(tempFilePath);
+            foreach (var path in tempFilePaths)
+                File.Delete(path);
         }
 
         private Stream GetStreamFromEmbeddedResource(string path)
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             return (from a in assemblies
-                   let stream = a.GetManifestResourceStream(path)
-                   where stream != null
-                   select stream).FirstOrDefault();
+                    let stream = a.GetManifestResourceStream(path)
+                    where stream != null
+                    select stream).FirstOrDefault();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="embeddedPath"> </param>
+        /// <param name="fileName"> </param>
         /// <returns>The path to the output file.</returns>
-        private string WriteEmbeddedFileToDisk(string path)
+        private string WriteEmbeddedFileToDisk(string embeddedPath, string fileName)
         {
             string outputFile;
-            using(var stream = GetStreamFromEmbeddedResource(path))
+            using (var stream = GetStreamFromEmbeddedResource(embeddedPath))
             {
-                var fileName = Path.GetFileName(path) ?? "temp.tmp";
                 outputFile = Path.Combine(Environment.CurrentDirectory, fileName);
                 using (var fileStream = File.Create(outputFile))
                     stream.CopyTo(fileStream);
