@@ -21,6 +21,8 @@
 using System;
 using System.Configuration;
 using System.Data.Common;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using Cheezburger.SchemaManager.Structure;
 using NUnit.Framework;
@@ -57,6 +59,8 @@ namespace Cheezburger.SchemaManager.Tests
         [Test, Ignore]
         public void CanRunFileMigration()
         {
+            var tempFilePath = WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Schema.xml");
+
             using (var connection = GetDbConnection("TestDb"))
             {
                 var schemaUpdater = new SchemaUpdater
@@ -70,6 +74,35 @@ namespace Cheezburger.SchemaManager.Tests
             }
 
             AssertTableExists("Category");
+
+            File.Delete(tempFilePath);
+        }
+
+        private Stream GetStreamFromEmbeddedResource(string path)
+        {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            return (from a in assemblies
+                   let stream = a.GetManifestResourceStream(path)
+                   where stream != null
+                   select stream).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>The path to the output file.</returns>
+        private string WriteEmbeddedFileToDisk(string path)
+        {
+            string outputFile;
+            using(var stream = GetStreamFromEmbeddedResource(path))
+            {
+                var fileName = Path.GetFileName(path) ?? "temp.tmp";
+                outputFile = Path.Combine(Environment.CurrentDirectory, fileName);
+                using (var fileStream = File.Create(outputFile))
+                    stream.CopyTo(fileStream);
+            }
+            return outputFile;
         }
 
         private void AssertTableExists(string tableName)
