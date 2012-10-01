@@ -52,6 +52,7 @@
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\ListExtentions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="IResolver.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Structure\CallbackHelper.cs" />
