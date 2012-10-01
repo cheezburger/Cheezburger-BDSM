@@ -39,7 +39,7 @@ task test_coverage -precondition {return Test-Path $ncover3} {
 	Write-Host "##teamcity[dotNetCoverage ncover3_home='$ncover3']"
     Write-Host "##teamcity[dotNetCoverage ncover3_reporter_args='//or Summary:Html:{teamcity.report.path}']"
 	Write-Host "##teamcity[importData type='dotNetCoverage' tool='ncover3' path='$testrpt_dir\$nunitCoverageReport']"  
-	Write-Host "Finished Runnign Tests"
+	Write-Host "Finished Running Tests"
 }
 
 task test_no_coverage -precondition {return -not(Test-Path $ncover3)} {
@@ -60,5 +60,5 @@ task test_no_coverage -precondition {return -not(Test-Path $ncover3)} {
 		throw "Tests Failed."
 	}
     Write-Host "##teamcity[importData type='nunit' path='$nunitReport']"
-	Write-Host "Finished Runnign Tests"
+	Write-Host "Finished Running Tests"
 }
