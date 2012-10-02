@@ -59,16 +59,17 @@ namespace Cheezburger.SchemaManager.Tests
         [Test, Ignore]
         public void CanRunFileMigration()
         {
+            var dir = Directory.CreateDirectory("Schemas");
             var tempFilePaths = new[] {
-                WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Schema.xml", "Schema.xml"),
-                WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Tables.xml", "Tables.xml")
+                WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Schema.xml", "Schemas\\Schema.xml"),
+                WriteEmbeddedFileToDisk("Cheezburger.SchemaManager.Tests.Tables.xml", "Schemas\\Tables.xml")
             };
 
             using (var connection = GetDbConnection("TestDb"))
             {
                 var schemaUpdater = new SchemaUpdater
                 {
-                    Mappings = { new FileSchemaMapping { Name = "Schema.xml" } }
+                    Mappings = { new FileSchemaMapping { Name = "Schema.xml", Path = "Schemas"} }
                 };
 
                 connection.Open();
@@ -80,6 +81,7 @@ namespace Cheezburger.SchemaManager.Tests
 
             foreach (var path in tempFilePaths)
                 File.Delete(path);
+            dir.Delete(true);
         }
 
         private Stream GetStreamFromEmbeddedResource(string path)

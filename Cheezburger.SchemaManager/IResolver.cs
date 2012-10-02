@@ -29,7 +29,7 @@ namespace Cheezburger.SchemaManager
             }
 
             if (string.IsNullOrEmpty(result.Name))
-                result.Name = name.Substring(_path.Length);
+                result.Name = name;
 
             return result;
         }
